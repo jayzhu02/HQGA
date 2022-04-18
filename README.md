@@ -55,3 +55,39 @@ It will train the model and save to ['models/msvd'].
 ```
 ## Acknowledgement
 Our feature extraction for object, frame appearance and motion are from [BUTD](https://github.com/MILVLG/bottom-up-attention.pytorch) and [HCRN](https://github.com/thaolmk54/hcrn-videoqa) respectively. Many thanks the authors for their great work and code!
+
+## Modification for NeXT-QA dataset
+
+1. main_qa.py 
+```
+dataset = 'nextqa'  
+multi_choice = True
+model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-6c5s'
+
+```
+
+2.videoqa.py
+```
+num_clip, num_frame, num_bbox = 16, 16, 20  # For nextqa
+
+```
+
+3.sample_loader.py
+```
+def get_multi_choice_sample(self, idx):
+
+        temporal_multihot = self.get_tce_and_tse(qns)
+
+```
+
+4.EncoderQns.py
+```
+self.max_qa_length = 37  # Same in sample_loader.py
+self.temporal_length = 11  # total number of category and signal in get_tce_and_tse() in sample_loader.py
+```
+
+5.EncoderVid.py
+```
+75 framePos = framePos.contiguous().view(batch_size, num_clip, frame_pclip, region_pframe, -1)
+
+```
