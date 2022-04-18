@@ -176,7 +176,12 @@ class VideoQADataset(Dataset):
         TCE: dim:(,). Multi-Hot
         TSE: dim:(,). One-Hot
         """
-        category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
+        # For msvd dataset
+        # category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
+        # signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
+
+        # For naxtqa dataset
+        category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0}
         signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
 
         signal_flag = 0
@@ -184,10 +189,10 @@ class VideoQADataset(Dataset):
             if c in question:
                 category[c] = 1
 
-        if category['what'] == 1:
-            if 'doing' in question:
-                category['what_a'] = 1
-                category['what'] = 0
+        # if category['what'] == 1:
+        #     if 'doing' in question:
+        #         category['what_a'] = 1
+        #         category['what'] = 0
 
         if category['how many'] == 1:
             category['how'] = 0
