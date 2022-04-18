@@ -22,9 +22,9 @@ class VideoQADataset(Dataset):
         sample_list_file = osp.join(sample_list_path, '{}.csv'.format(mode))
         self.sample_list = load_file(sample_list_file)
         self.video_feature_cache = video_feature_cache
-        self.max_qa_length = 20  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
+        self.max_qa_length = 37  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
         self.use_bbox = True
-        self.bbox_num = 10  # 20 for NExT-QA, 10 for others
+        self.bbox_num = 20  # 20 for NExT-QA, 10 for others
         self.use_bert = use_bert
         self.use_frame = True
         self.use_mot = True
@@ -142,7 +142,9 @@ class VideoQADataset(Dataset):
 
         video_name, qns, ans, qid = str(cur_sample[vid]), str(cur_sample['question']), \
                                     int(cur_sample['answer']), str(cur_sample[qid])
-
+        
+        temporal_multihot = self.get_tce_and_tse(qns)
+        
         width, height = int(cur_sample['width']), int(cur_sample['height'])
         candidate_qas = []
         qns2ids = [self.vocab('<start>')] + self.get_word_idx(qns) + [self.vocab('<end>')]
@@ -163,7 +165,7 @@ class VideoQADataset(Dataset):
                 # if valid_row != qa_lengths[i]:
                 qa_lengths.append(valid_row)
         qns_key = video_name + '_' + qid
-        return video_name, candidate_qas, qa_lengths, ans, qns_key, width, height
+        return video_name, candidate_qas, qa_lengths, ans, qns_key, width, height, temporal_multihot
 
     def get_tce_and_tse(self, question):
         """
@@ -220,7 +222,8 @@ class VideoQADataset(Dataset):
                 -relation: torch tensor of variable length
         """
         if self.multi_choice:
-            video_name, candidate_qas, qa_lengths, ans_idx, qns_key, width, height = self.get_multi_choice_sample(idx)
+            video_name, candidate_qas, qa_lengths, ans_idx, qns_key, width, height, temporal_multihot = self.get_multi_choice_sample(idx)
+           
         else:
             cur_sample = self.sample_list.loc[idx]
             video_name, qns, ans, qid = str(cur_sample['video']), str(cur_sample['question']), \

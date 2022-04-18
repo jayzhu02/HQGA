@@ -57,7 +57,6 @@ class EncoderVid(nn.Module):
         )
 
     def forward(self, vid_feats):
-         
         roi_feat = vid_feats[0][:,:,:,:,:self.dim_feat]
         batch_size, num_clip, frame_pclip, region_pframe, dim_feat = roi_feat.size()
         roi_bbox = vid_feats[0][:, :, :, :, dim_feat:(dim_feat+self.dim_bbox)].\
@@ -72,8 +71,8 @@ class EncoderVid(nn.Module):
 
         if self.use_framePos:
             framePos = self.framePos.unsqueeze(0).expand(batch_size, -1, -1, -1)
-            framePos = framePos.view(batch_size, num_clip, frame_pclip, region_pframe, -1)
-            bbox_features = torch.cat([bbox_features, framePos], dim=-1)
+            framePos = framePos.contiguous().view(batch_size, num_clip, frame_pclip, region_pframe, -1)
+            bbox_features = torch.cat([bbox_features, framePos], dim=-1)  # [64, 16, 4, 20, 2208]
         
         bbox_features = self.tohid(bbox_features)
         bbox_feat = bbox_features

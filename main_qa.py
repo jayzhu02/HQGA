@@ -5,20 +5,23 @@ from utils import *
 import argparse
 import eval_mc
 import eval_oe
-
+import platform
 
 def main(args):
     mode = args.mode
     if mode == 'train':
         batch_size = 64
-        num_worker = 0
     else:
         batch_size = 64
+        
+    if platform.system() == 'Windows':
         num_worker = 0
-
-    dataset = 'msvd'  # nextqa, msrvtt, tgifqa
+    else:
+        num_worker = 4
+        
+    dataset = 'nextqa'  # nextqa, msrvtt, tgifqa
     task = ''  # if tgifqa, set task to 'action', 'transition', 'frameqa'
-    multi_choice = False  # True for nextqa and tgifqa-action(transition)
+    multi_choice = True  # True for nextqa and tgifqa-action(transition)
     use_bert = True
     spatial = True
     if spatial:
@@ -35,7 +38,7 @@ def main(args):
     checkpoint_path = 'models/{}/{}'.format(dataset, task)
     model_type = 'HQGA'
     # model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-VM'   # Need to change if you want to use new model
-    model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-ZJ-7c5s'
+    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-6c5s'
 
     vis_step = 200
     lr_rate = 1e-4
@@ -49,11 +52,12 @@ def main(args):
     vqa = VideoQA(vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
-    # for iter, data in enumerate(train_loader):
-    #     videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
-    #     print(qas, temp_multihot)
-    #     break
-    # return 0
+#     print("loading train...")
+#     for iter, data in enumerate(train_loader):
+#         videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
+#         print(qas, temp_multihot)
+#         break
+#     return 0
 
     ep = 22
     acc = 39.66
@@ -82,7 +86,7 @@ if __name__ == "__main__":
     parser.add_argument('--gpu', dest='gpu', type=int,
                         default=0, help='gpu device id')
     parser.add_argument('--mode', dest='mode', type=str,
-                        default='test', help='[train, val, test]')
+                        default='train', help='[train, val, test]')
 
     args = parser.parse_args()
     set_gpu_devices(args.gpu)
