@@ -31,7 +31,9 @@ class VideoQA():
 
         feat_dim = 2048
         bbox_dim = 5
-        num_clip, num_frame, num_bbox = 8, 8*4, 10
+#         num_clip, num_frame, num_bbox = 8, 8*4, 10  # For msvd
+        num_clip, num_frame, num_bbox = 16, 16, 20  # For nextqa
+
         feat_hidden, pos_hidden = 256, 128
         word_dim = 300
         vocab_size = None if self.use_bert else len(self.vocab)
