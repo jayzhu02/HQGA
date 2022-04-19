@@ -21,7 +21,7 @@ def main(args):
         
     dataset = 'nextqa'  # nextqa, msrvtt, tgifqa
     task = ''  # if tgifqa, set task to 'action', 'transition', 'frameqa'
-    multi_choice = True  # True for nextqa and tgifqa-action(transition)
+    multi_choice = True  # True for nextqa and tgifqa-action(transition), False for other
     use_bert = True
     spatial = True
     if spatial:
@@ -49,15 +49,16 @@ def main(args):
                                       sample_list_path, vocab, multi_choice, use_bert, True, False)
 
     train_loader, val_loader = data_loader.run(mode=mode)
-    vqa = VideoQA(vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
+    vqa = VideoQA(vocab, val_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
-#     print("loading train...")
-#     for iter, data in enumerate(train_loader):
-#         videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
-#         print(qas, temp_multihot)
-#         break
-#     return 0
+    # print("loading train...")
+    # for iter, data in enumerate(val_loader):
+    #     videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
+    #     print(qas.shape, temp_multihot.shape)
+    #     vqa.run(f'{model_type}-{model_prefix}-22-39.88.ckpt', pre_trained=False)
+    #     break
+    # return 0
 
     ep = 22
     acc = 39.66

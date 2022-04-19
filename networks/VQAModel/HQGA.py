@@ -108,6 +108,8 @@ class HQGA(nn.Module):
                 batch_size, choice_size, max_len, feat_dim = qas.size()
                 cand_qas = qas.view(batch_size*choice_size, max_len, feat_dim)  
                 cand_len = qas_lengths.view(batch_size*choice_size)
+                #  Need boardcast for temp_multihot (batch_size*choice_size)
+                temp_multihot = temp_multihot.view(batch_size*choice_size, -1)
             else:
                 batch_size, choice_size, max_len = qas.size()
                 cand_qas = qas.view(batch_size*choice_size, max_len)

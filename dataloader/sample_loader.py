@@ -165,6 +165,8 @@ class VideoQADataset(Dataset):
                 # if valid_row != qa_lengths[i]:
                 qa_lengths.append(valid_row)
         qns_key = video_name + '_' + qid
+        # align with shape of candidate_qas
+        temporal_multihot = temporal_multihot.reshape(1, -1).repeat(5, axis=0)
         return video_name, candidate_qas, qa_lengths, ans, qns_key, width, height, temporal_multihot
 
     def get_tce_and_tse(self, question):

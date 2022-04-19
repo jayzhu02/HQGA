@@ -71,8 +71,8 @@ class EncoderVid(nn.Module):
 
         if self.use_framePos:
             framePos = self.framePos.unsqueeze(0).expand(batch_size, -1, -1, -1)
-            framePos = framePos.contiguous().view(batch_size, num_clip, frame_pclip, region_pframe, -1)
-            bbox_features = torch.cat([bbox_features, framePos], dim=-1)  # [64, 16, 4, 20, 2208]
+            framePos = framePos.view(batch_size, num_clip, frame_pclip, region_pframe, -1)
+            bbox_features = torch.cat([bbox_features, framePos], dim=-1)  # [64, 16, 4, 20, 2304]
         
         bbox_features = self.tohid(bbox_features)
         bbox_feat = bbox_features
