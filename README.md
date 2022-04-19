@@ -80,6 +80,11 @@ self.bbox_num = 10  # 20 for NExT-QA, 10 for others
 def get_multi_choice_sample(self, idx):
 
         temporal_multihot = self.get_tce_and_tse(qns)
+        
+        ...
+        
+        # align with shape of candidate_qas
+        temporal_multihot = temporal_multihot.reshape(1, -1).repeat(5, axis=0)
 
 ```
 
@@ -89,8 +94,9 @@ self.max_qa_length = 37  # Same in sample_loader.py
 self.temporal_length = 11  # total number of category and signal in get_tce_and_tse() in sample_loader.py
 ```
 
-5.EncoderVid.py
+5.HQGA.py
 ```
-75 framePos = framePos.contiguous().view(batch_size, num_clip, frame_pclip, region_pframe, -1)
+111 #  Need boardcast for temp_multihot (batch_size*choice_size)
+112 temp_multihot = temp_multihot.view(batch_size*choice_size, -1)
+```
 
-```
