@@ -68,7 +68,7 @@ model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-6c5s'
 
 2.videoqa.py
 ```
-num_clip, num_frame, num_bbox = 16, 16, 20  # For nextqa
+num_clip, num_frame, num_bbox = 16, 16*4, 20  # For nextqa
 
 ```
 
