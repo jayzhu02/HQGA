@@ -74,6 +74,9 @@ num_clip, num_frame, num_bbox = 16, 16, 20  # For nextqa
 
 3.sample_loader.py
 ```
+self.max_qa_length = 20  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
+self.bbox_num = 10  # 20 for NExT-QA, 10 for others
+
 def get_multi_choice_sample(self, idx):
 
         temporal_multihot = self.get_tce_and_tse(qns)
