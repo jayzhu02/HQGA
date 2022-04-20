@@ -49,7 +49,7 @@ def main(args):
                                       sample_list_path, vocab, multi_choice, use_bert, True, False)
 
     train_loader, val_loader = data_loader.run(mode=mode)
-    vqa = VideoQA(vocab, val_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
+    vqa = VideoQA(vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
     # print("loading train...")
