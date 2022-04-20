@@ -10,7 +10,7 @@ import platform
 def main(args):
     mode = args.mode
     if mode == 'train':
-        batch_size = 64
+        batch_size = 16
     else:
         batch_size = 64
         
