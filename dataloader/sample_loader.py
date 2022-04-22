@@ -40,11 +40,7 @@ class VideoQADataset(Dataset):
             self.bert_file = osp.join(bert_path, 'bert_ft_{}.h5'.format(mode))
 
         if self.use_bbox:
-            if self.bbox_num == 10:
-                bbox_feat_file = osp.join(self.video_feature_path, 'region_feat_n/region_8c10b_{}.h5'.format(mode))
-            else:
-                bbox_feat_file = osp.join(self.video_feature_path, 'region_feat_n/region_16c20b_{}.h5'.format(mode))
-
+            bbox_feat_file = osp.join(self.video_feature_path, 'region_feat_n/region_8c10b_{}.h5'.format(mode))
             print('Load {}...'.format(bbox_feat_file))
 
             self.bbox_feats = {}
@@ -142,9 +138,6 @@ class VideoQADataset(Dataset):
 
         video_name, qns, ans, qid = str(cur_sample[vid]), str(cur_sample['question']), \
                                     int(cur_sample['answer']), str(cur_sample[qid])
-        
-        temporal_multihot = self.get_tce_and_tse(qns)
-        
         width, height = int(cur_sample['width']), int(cur_sample['height'])
         candidate_qas = []
         qns2ids = [self.vocab('<start>')] + self.get_word_idx(qns) + [self.vocab('<end>')]
@@ -165,57 +158,9 @@ class VideoQADataset(Dataset):
                 # if valid_row != qa_lengths[i]:
                 qa_lengths.append(valid_row)
         qns_key = video_name + '_' + qid
-        # align with shape of candidate_qas
-        temporal_multihot = temporal_multihot.reshape(1, -1).repeat(5, axis=0)
-        return video_name, candidate_qas, qa_lengths, ans, qns_key, width, height, temporal_multihot
+        return video_name, candidate_qas, qa_lengths, ans, qns_key, width, height
 
-    def get_tce_and_tse(self, question):
-        """
-        2022.3.21@Jie Zhu
-        Add category type and signal type in here and return it.
-        At this time, question category could be divided as: When, Why, How, What, Where, How many
-        signal type could be divided as: Before, After, Start, Finish, NO signal
-        according to the paper(except ordinal, overlap signal since they don't exist in dataset.
-
-        TCE: dim:(,). Multi-Hot
-        TSE: dim:(,). One-Hot
-        """
-        # For msvd dataset
-        # category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
-        # signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
-
-        # For naxtqa dataset
-        category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0}
-        signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
-
-        signal_flag = 0
-        for c in category.keys():
-            if c in question:
-                category[c] = 1
-
-        # if category['what'] == 1:
-        #     if 'doing' in question:
-        #         category['what_a'] = 1
-        #         category['what'] = 0
-
-        if category['how many'] == 1:
-            category['how'] = 0
-
-        for c in signal.keys():
-            if c in question:
-                signal[c] = 1
-                signal_flag = 1
-
-        if signal_flag == 0:
-            signal['no_signal'] = 1
-
-        category_multihot = np.array([i for i in category.values()])
-        signal_onehot = np.array([i for i in signal.values()])
-        temporal_multihot = np.concatenate((category_multihot, signal_onehot))
-        temporal_multihot = temporal_multihot.astype(np.float32)
-        return temporal_multihot
-
-    def __getitem__(self, idx, temporal_=None):
+    def __getitem__(self, idx):
         """
         return an item from data list as tuple (video, relation)
         :param idx:
@@ -224,15 +169,11 @@ class VideoQADataset(Dataset):
                 -relation: torch tensor of variable length
         """
         if self.multi_choice:
-            video_name, candidate_qas, qa_lengths, ans_idx, qns_key, width, height, temporal_multihot = self.get_multi_choice_sample(idx)
-           
+            video_name, candidate_qas, qa_lengths, ans_idx, qns_key, width, height = self.get_multi_choice_sample(idx)
         else:
             cur_sample = self.sample_list.loc[idx]
             video_name, qns, ans, qid = str(cur_sample['video']), str(cur_sample['question']), \
                                         str(cur_sample['answer']), str(cur_sample['qid'])
-
-            temporal_multihot = self.get_tce_and_tse(qns)
-
             # width, height = 320, 240 #msrvtt
             width, height = cur_sample['width'], cur_sample['height']
             candidate_qas = self.get_word_idx(qns)
@@ -247,7 +188,8 @@ class VideoQADataset(Dataset):
 
         video_feature = self.get_video_feature(video_name, width, height)
         qa_lengths = torch.tensor(qa_lengths)
-        return video_feature, candidate_qas, qa_lengths, ans_idx, qns_key, temporal_multihot
+
+        return video_feature, candidate_qas, qa_lengths, ans_idx, qns_key
 
 
 def nozero_row(A):

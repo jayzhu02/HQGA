@@ -108,8 +108,7 @@ class HQGA(nn.Module):
                 batch_size, choice_size, max_len, feat_dim = qas.size()
                 cand_qas = qas.view(batch_size*choice_size, max_len, feat_dim)  
                 cand_len = qas_lengths.view(batch_size*choice_size)
-                #  Need boardcast for temp_multihot (batch_size*choice_size)
-                temp_multihot = temp_multihot.view(batch_size*choice_size, -1)
+
             else:
                 batch_size, choice_size, max_len = qas.size()
                 cand_qas = qas.view(batch_size*choice_size, max_len)
@@ -120,7 +119,7 @@ class HQGA(nn.Module):
             cand_qas = qas
             cand_len = qas_lengths
 
-        q_output, s_hidden = self.qns_encoder(cand_qas, cand_len, temp_multihot)
+        q_output, s_hidden = self.qns_encoder(cand_qas, cand_len)
         qns_global = s_hidden.permute(1, 0, 2).contiguous().view(q_output.shape[0], -1)  # batch * dim_hidden
         # print(q_output.shape, qns_global.shape)
         out, vis_graph = self.vq_encoder(vid_feats, q_output, cand_len, qns_global)
