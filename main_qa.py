@@ -10,9 +10,9 @@ import platform
 def main(args):
     mode = args.mode
     if mode == 'train':
-        batch_size = 64
+        batch_size = 16
     else:
-        batch_size = 64
+        batch_size = 16
         
     if platform.system() == 'Windows':
         num_worker = 0
@@ -38,7 +38,7 @@ def main(args):
     checkpoint_path = 'models/{}/{}'.format(dataset, task)
     model_type = 'HQGA'
     # model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-VM'   # Need to change if you want to use new model
-    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-6c5s'
+    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ'
 
     vis_step = 200
     lr_rate = 1e-4
@@ -49,16 +49,16 @@ def main(args):
                                       sample_list_path, vocab, multi_choice, use_bert, True, False)
 
     train_loader, val_loader = data_loader.run(mode=mode)
-    vqa = VideoQA(vocab, val_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
+    vqa = VideoQA(vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
-    # print("loading train...")
-    # for iter, data in enumerate(val_loader):
-    #     videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
-    #     print(qas.shape, temp_multihot.shape)
-    #     vqa.run(f'{model_type}-{model_prefix}-22-39.88.ckpt', pre_trained=False)
-    #     break
-    # return 0
+#     print("loading train...")
+#     for iter, data in enumerate(val_loader):
+#         videos, qas, qas_lengths, answers, qns_keys = data
+#         print(qas.shape)
+#         vqa.run(f'{model_type}-{model_prefix}-22-39.88.ckpt', pre_trained=False)
+#         break
+#     return 0
 
     ep = 22
     acc = 39.66

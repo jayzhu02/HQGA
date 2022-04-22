@@ -31,7 +31,7 @@ class VideoQA():
 
         feat_dim = 2048
         bbox_dim = 5
-        # num_clip, num_frame, num_bbox = 8, 8*4, 10  # For msvd
+#         num_clip, num_frame, num_bbox = 8, 8*4, 10
         num_clip, num_frame, num_bbox = 16, 16*4, 20  # For nextqa
 
         feat_hidden, pos_hidden = 256, 128
@@ -52,7 +52,7 @@ class VideoQA():
             self.model = HQGA.HQGA(vid_encoder, qns_encoder, self.device, num_class)
 
         params = [{'params':self.model.parameters()}]
-        self.optimizer = torch.optim.Adam(params=params, lr=self.lr_rate)
+        self.optimizer = torch.optim.Adam(params = params, lr=self.lr_rate)
         self.scheduler = ReduceLROnPlateau(self.optimizer, 'max', factor=0.5, patience=5, verbose=True)
         
         self.model.to(self.device)
@@ -113,12 +113,11 @@ class VideoQA():
         answer_list = []
 
         for iter, inputs in enumerate(self.train_loader):
-            videos, qas, qas_lengths, answers, qns_keys, temp_multihot = inputs
+            videos, qas, qas_lengths, answers, qns_keys = inputs
             video_inputs = to_device(videos, self.device)
             qas_inputs = qas.to(self.device)
             ans_targets = answers.to(self.device)
-            temp_input = temp_multihot.to(self.device)
-            out, prediction, _ = self.model(video_inputs, qas_inputs, qas_lengths, temp_input)
+            out, prediction, _ = self.model(video_inputs, qas_inputs, qas_lengths)
 
             loss = self.criterion(out, ans_targets)
             
@@ -150,11 +149,10 @@ class VideoQA():
         answer_list = []
         with torch.no_grad():
             for iter, inputs in enumerate(self.val_loader):
-                videos, qas, qas_lengths, answers, qns_keys, temp_multihot = inputs
+                videos, qas, qas_lengths, answers, qns_keys = inputs
                 video_inputs = to_device(videos, self.device)
                 qas_inputs = qas.to(self.device)
-                temp_input = temp_multihot.to(self.device)
-                out, prediction, _ = self.model(video_inputs, qas_inputs, qas_lengths, temp_input)
+                out, prediction, _ = self.model(video_inputs, qas_inputs, qas_lengths)
 
                 prediction_list.append(prediction)
                 answer_list.append(answers)
@@ -187,12 +185,11 @@ class VideoQA():
         with torch.no_grad():
             for it, inputs in enumerate(self.val_loader):
                 
-                videos, qas, qas_lengths, answers, qns_keys, temp_multihot = inputs
+                videos, qas, qas_lengths, answers, qns_keys = inputs
                 
                 video_inputs = to_device(videos, self.device)
                 qas_inputs = qas.to(self.device)
-                temp_input = temp_multihot.to(self.device)
-                out, prediction, vis_graph = self.model(video_inputs, qas_inputs, qas_lengths, temp_input)
+                out, prediction, vis_graph = self.model(video_inputs, qas_inputs, qas_lengths)
                 prediction = prediction.data.cpu().numpy()
                 answers = answers.numpy()
                 # with open('vis/nextqa/{}.pkl'.format(str(qns_keys[0])), 'wb') as fp:

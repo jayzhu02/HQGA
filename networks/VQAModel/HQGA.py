@@ -91,7 +91,7 @@ class HQGA(nn.Module):
                                 nn.Dropout(0.15),
                                 nn.Linear(hidden_size, num_class))
         
-    def forward(self, vid_feats, qas, qas_lengths, temp_multihot):
+    def forward(self, vid_feats, qas, qas_lengths):
         """
         :param vid_feats:
         :param qns:
@@ -108,7 +108,6 @@ class HQGA(nn.Module):
                 batch_size, choice_size, max_len, feat_dim = qas.size()
                 cand_qas = qas.view(batch_size*choice_size, max_len, feat_dim)  
                 cand_len = qas_lengths.view(batch_size*choice_size)
-
             else:
                 batch_size, choice_size, max_len = qas.size()
                 cand_qas = qas.view(batch_size*choice_size, max_len)
@@ -120,7 +119,7 @@ class HQGA(nn.Module):
             cand_len = qas_lengths
 
         q_output, s_hidden = self.qns_encoder(cand_qas, cand_len)
-        qns_global = s_hidden.permute(1, 0, 2).contiguous().view(q_output.shape[0], -1)  # batch * dim_hidden
+        qns_global = s_hidden.permute(1, 0, 2).contiguous().view(q_output.shape[0], -1)
         # print(q_output.shape, qns_global.shape)
         out, vis_graph = self.vq_encoder(vid_feats, q_output, cand_len, qns_global)
         
@@ -139,8 +138,6 @@ class HQGA(nn.Module):
         if self.num_class == 1:
             #for multi-choice QA
             out = self.classifier(qns_global*hierarchy_out_att_pool).squeeze()
-            # MSVD优先用第一种[qns_global, hierarchy_out_att_GC,hierarchy_out_att_Go, hierarchy_out_att_GF]
-            # 第二种out = Avg(self.classifier(qns_global*hierarchy_out_att_GC), self.classifier(qns_global*hierarchy_out_att_GO)...)
             out = out.view(-1, 5)
         else:
             cb_feat = torch.cat([hierarchy_out_att_pool, qns_global], -1)

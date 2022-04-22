@@ -40,7 +40,11 @@ class VideoQADataset(Dataset):
             self.bert_file = osp.join(bert_path, 'bert_ft_{}.h5'.format(mode))
 
         if self.use_bbox:
-            bbox_feat_file = osp.join(self.video_feature_path, 'region_feat_n/region_8c10b_{}.h5'.format(mode))
+            if self.bbox_num == 10:
+                bbox_feat_file = osp.join(self.video_feature_path, 'region_feat_n/region_8c10b_{}.h5'.format(mode))
+            else:
+                bbox_feat_file = osp.join(self.video_feature_path, 'region_feat_n/region_16c20b_{}.h5'.format(mode))
+        
             print('Load {}...'.format(bbox_feat_file))
 
             self.bbox_feats = {}
