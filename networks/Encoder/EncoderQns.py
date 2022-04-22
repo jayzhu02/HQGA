@@ -48,7 +48,7 @@ class EncoderQns(nn.Module):
         self.bidirectional = bidirectional
         self.rnn_cell = rnn_cell
         self.max_qa_length = 37  # Same in sample_loader.py
-        self.temporal_length = 11  # total number of category and signal in get_tce_and_tse() in sample_loader.py
+        self.temporal_length = 12  # total number of category and signal in get_tce_and_tse() in sample_loader.py
 
         self.input_dropout = nn.Dropout(input_dropout_p)
 

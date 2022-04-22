@@ -185,7 +185,7 @@ class VideoQADataset(Dataset):
         # signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
 
         # For naxtqa dataset
-        category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0}
+        category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0, "why":0}
         signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
 
         signal_flag = 0

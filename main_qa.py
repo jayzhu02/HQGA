@@ -38,7 +38,7 @@ def main(args):
     checkpoint_path = 'models/{}/{}'.format(dataset, task)
     model_type = 'HQGA'
     # model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-VM'   # Need to change if you want to use new model
-    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-6c5s'
+    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-7c5s'
 
     vis_step = 200
     lr_rate = 1e-4
@@ -60,8 +60,8 @@ def main(args):
     #     break
     # return 0
 
-    ep = 22
-    acc = 39.66
+    ep = 15
+    acc = 49.44
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':
