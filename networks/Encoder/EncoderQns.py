@@ -87,7 +87,8 @@ class EncoderQns(nn.Module):
 
         # First do the positonal encoding
         if temp_multihot is not None:
-            qns_encoding = self.pe(qns)
+            qns_encoding = qns
+#             qns_encoding = self.pe(qns)
             temp_dim = self.temporal_embedding(temp_multihot)
             temp_dim = temp_dim.view(temp_dim.shape[0], 1, temp_dim.shape[1])
             #  Concatenate Temporal encoding
