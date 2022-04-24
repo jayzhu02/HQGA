@@ -60,8 +60,8 @@ def main(args):
 #         break
 #     return 0
 
-    ep = 22
-    acc = 39.66
+    ep = 12
+    acc = 50.38
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':
