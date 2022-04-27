@@ -73,7 +73,7 @@ class EncoderQns(nn.Module):
         self.rnn = self.rnn_cell(dim_embed, dim_hidden, n_layers, batch_first=True,
                                  bidirectional=bidirectional, dropout=self.rnn_dropout_p)
 
-    def forward(self, qns, qns_lengths, temp_multihot=None, hidden=None):
+    def forward(self, qns, qns_lengths, temp_multihot=None, hidden=None, use_pe=False):
         """
         2022.3.21@Jie Zhu
         Concatenate Category encoding and Signal encoding here.
@@ -84,11 +84,12 @@ class EncoderQns(nn.Module):
         :param temp_encoding: dim: batch* 1 * temporal_length
         :return:
         """
-
-        # First do the positonal encoding
         if temp_multihot is not None:
-            qns_encoding = qns
-#             qns_encoding = self.pe(qns)
+            if use_pe:
+                #  Do positional encoding
+                qns_encoding = self.pe(qns)
+            else:
+                qns_encoding = qns
             temp_dim = self.temporal_embedding(temp_multihot)
             temp_dim = temp_dim.view(temp_dim.shape[0], 1, temp_dim.shape[1])
             #  Concatenate Temporal encoding

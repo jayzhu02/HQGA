@@ -174,17 +174,17 @@ class VideoQADataset(Dataset):
         2022.3.21@Jie Zhu
         Add category type and signal type in here and return it.
         At this time, question category could be divided as: When, Why, How, What, Where, How many
-        signal type could be divided as: Before, After, Start, Finish, NO signal
+        signal type could be divided as: Before, After, Start, Finish, NO signal. 
         according to the paper(except ordinal, overlap signal since they don't exist in dataset.
 
         TCE: dim:(,). Multi-Hot
-        TSE: dim:(,). One-Hot
+        TSE: dim:(,). Multi-Hot
         """
-        # For msvd dataset
+        # For msvd dataset #取消what_a变为 signal 'doing'
         # category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
         # signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
 
-        # For naxtqa dataset
+        # For naxtqa dataset #signal可以加during, end, middle
         category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0, "why":0}
         signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
 
