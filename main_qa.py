@@ -19,9 +19,9 @@ def main(args):
     else:
         num_worker = 4
         
-    dataset = 'nextqa'  # nextqa, msrvtt, tgifqa
+    dataset = 'msvd'  # nextqa, msvd, msrvtt, tgifqa
     task = ''  # if tgifqa, set task to 'action', 'transition', 'frameqa'
-    multi_choice = True  # True for nextqa and tgifqa-action(transition), False for other
+    multi_choice = False  # True for nextqa and tgifqa-action(transition), False for other
     use_bert = True
     spatial = True
     if spatial:
@@ -40,7 +40,7 @@ def main(args):
     # model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-VM'   # Need to change if you want to use new model
     model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-7c5s-nope'
 
-    vis_step = 200
+    vis_step = 200;
     lr_rate = 1e-4
     epoch_num = 50
     grad_accu_steps = 1
@@ -60,8 +60,8 @@ def main(args):
     #     break
     # return 0
 
-    ep = 9
-    acc = 50.52
+    ep = 3
+    acc = 37.33
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':
