@@ -74,8 +74,8 @@ num_clip, num_frame, num_bbox = 16, 16*4, 20  # For nextqa
 
 3.sample_loader.py
 ```
-self.max_qa_length = 20  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
-self.bbox_num = 10  # 20 for NExT-QA, 10 for others
+self.max_qa_length = 37  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
+self.bbox_num = 20  # 20 for NExT-QA, 10 for others
 
 def get_multi_choice_sample(self, idx):
 
@@ -86,6 +86,11 @@ def get_multi_choice_sample(self, idx):
         # align with shape of candidate_qas
         temporal_multihot = temporal_multihot.reshape(1, -1).repeat(5, axis=0)
 
+        # For msvd Dataset, need to commit if not use
+#         if category['what'] == 1:
+#             if 'doing' in question:
+#                 category['what_a'] = 1
+#                 category['what'] = 0
 ```
 
 4.EncoderQns.py
