@@ -86,11 +86,11 @@ def get_multi_choice_sample(self, idx):
         # align with shape of candidate_qas
         temporal_multihot = temporal_multihot.reshape(1, -1).repeat(5, axis=0)
 
-        # For msvd Dataset, need to commit if not use
-#         if category['what'] == 1:
-#             if 'doing' in question:
-#                 category['what_a'] = 1
-#                 category['what'] = 0
+# For msvd Dataset, need to commit if not use
+# if category['what'] == 1:
+#     if 'doing' in question:
+#           category['what_a'] = 1
+#           category['what'] = 0
 ```
 
 4.EncoderQns.py
