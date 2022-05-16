@@ -22,9 +22,9 @@ class VideoQADataset(Dataset):
         sample_list_file = osp.join(sample_list_path, '{}.csv'.format(mode))
         self.sample_list = load_file(sample_list_file)
         self.video_feature_cache = video_feature_cache
-        self.max_qa_length = 20  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
+        self.max_qa_length = 37  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
         self.use_bbox = True
-        self.bbox_num = 10  # 20 for NExT-QA, 10 for others
+        self.bbox_num = 20  # 20 for NExT-QA, 10 for others
         self.use_bert = use_bert
         self.use_frame = True
         self.use_mot = True
@@ -183,22 +183,23 @@ class VideoQADataset(Dataset):
         # For msvd dataset #取消what_a变为 signal 'doing'
         # category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
         # signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "no_signal": 0}
-        category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
-        signal = {"before": 0, "after": 0, "during":0, "start": 0,"no_signal": 0}
+#         category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
+#         signal = {"before": 0, "after": 0, "during":0, "start": 0,"no_signal": 0}
 
         # For naxtqa dataset #signal可以加during, end, middle
-#         category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0, "why":0}
-#         signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "during":0, "end":0, "middle":0, "no_signal": 0}
+        category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0, "why":0}
+        signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "during":0, "end":0, "middle":0, "no_signal": 0}
 
         signal_flag = 0
         for c in category.keys():
             if c in question:
                 category[c] = 1
-        # For msvd Dataset
-        if category['what'] == 1:
-            if 'doing' in question:
-                category['what_a'] = 1
-                category['what'] = 0
+                
+        # For msvd Dataset, need to commit if not use
+#         if category['what'] == 1:
+#             if 'doing' in question:
+#                 category['what_a'] = 1
+#                 category['what'] = 0
 
         if category['how many'] == 1:
             category['how'] = 0

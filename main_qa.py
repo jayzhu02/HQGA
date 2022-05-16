@@ -19,9 +19,9 @@ def main(args):
     else:
         num_worker = 4
         
-    dataset = 'msvd'  # nextqa, msvd, msrvtt, tgifqa
+    dataset = 'nextqa'  # nextqa, msvd, msrvtt, tgifqa
     task = ''  # if tgifqa, set task to 'action', 'transition', 'frameqa'
-    multi_choice = False  # True for nextqa and tgifqa-action(transition), False for other
+    multi_choice = True  # True for nextqa and tgifqa-action(transition), False for other
     use_bert = True
     spatial = True
     if spatial:
@@ -38,12 +38,29 @@ def main(args):
     checkpoint_path = 'models/{}/{}'.format(dataset, task)
     model_type = 'HQGA'
     # model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-VM'   # Need to change if you want to use new model
-    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-7c5s-nope'
+    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-7c8s-nope&splited'
 
     vis_step = 200;
     lr_rate = 1e-4
     epoch_num = 50
     grad_accu_steps = 1
+
+    debug = True
+    if debug:
+        data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
+                                          sample_list_path, vocab, multi_choice, use_bert, True, False)
+
+        train_loader, val_loader = data_loader.run(mode='val')
+        vqa = VideoQA(vocab, val_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
+                      vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
+
+        print("loading train...")
+        for iter, data in enumerate(val_loader):
+            videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
+            print(qas.shape, temp_multihot.shape)
+            vqa.run(f'{model_type}-{model_prefix}-22-39.88.ckpt', pre_trained=False)
+            break
+        return 0
 
     data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
                                       sample_list_path, vocab, multi_choice, use_bert, True, False)
@@ -52,16 +69,9 @@ def main(args):
     vqa = VideoQA(vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
-    # print("loading train...")
-    # for iter, data in enumerate(val_loader):
-    #     videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
-    #     print(qas.shape, temp_multihot.shape)
-    #     vqa.run(f'{model_type}-{model_prefix}-22-39.88.ckpt', pre_trained=False)
-    #     break
-    # return 0
 
-    ep = 3
-    acc = 37.33
+    ep = 6
+    acc = 49.48
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':

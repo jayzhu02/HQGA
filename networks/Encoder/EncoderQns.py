@@ -47,8 +47,11 @@ class EncoderQns(nn.Module):
         self.n_layers = n_layers
         self.bidirectional = bidirectional
         self.rnn_cell = rnn_cell
-        self.max_qa_length = 20  # Same in sample_loader.py
-        self.temporal_length = 12  # total number of category and signal in get_tce_and_tse() in sample_loader.py
+        self.max_qa_length = 37  # Same in sample_loader.py
+        self.temporal_length = 15  # total number of category and signal in get_tce_and_tse() in sample_loader.py
+        self.category_length = 7
+        self.signal_length = 8
+       
 
         self.input_dropout = nn.Dropout(input_dropout_p)
 
@@ -61,7 +64,10 @@ class EncoderQns(nn.Module):
         if self.use_bert:
             input_dim = 768
             self.embedding = nn.Linear(input_dim, dim_embed)
-            self.temporal_embedding = nn.Linear(self.temporal_length, input_dim)
+#             self.temporal_embedding = nn.Linear(self.temporal_length, input_dim)
+            self.category_embedding = nn.Linear(self.category_length, input_dim)
+            self.signal_embedding = nn.Linear(self.signal_length, input_dim)
+
             # nn.Embedding
             self.pe = LearnedPositionalEncoding(self.max_qa_length, input_dim, self.max_qa_length)
 
@@ -90,10 +96,16 @@ class EncoderQns(nn.Module):
                 qns_encoding = self.pe(qns)
             else:
                 qns_encoding = qns
-            temp_dim = self.temporal_embedding(temp_multihot)
-            temp_dim = temp_dim.view(temp_dim.shape[0], 1, temp_dim.shape[1])
+#             temp_dim = self.temporal_embedding(temp_multihot)
+#             temp_dim = temp_dim.view(temp_dim.shape[0], 1, temp_dim.shape[1])
+            
+            cate_dim = self.category_embedding(temp_multihot[:,:self.category_length])
+            cate_dim = cate_dim.view(cate_dim.shape[0], 1, cate_dim.shape[1])
+            signal_dim = self.signal_embedding(temp_multihot[:,self.category_length:])
+            signal_dim = signal_dim.view(signal_dim.shape[0], 1, signal_dim.shape[1])            
             #  Concatenate Temporal encoding
-            qns = torch.cat((qns_encoding, temp_dim), 1)  # dim: batch * max(qa_length) +1 * 768
+#             qns = torch.cat((qns_encoding, temp_dim), 1)  # dim: batch * max(qa_length) +1 * 768
+            qns = torch.cat((qns_encoding, cate_dim, signal_dim), 1)  # dim: batch * max(qa_length) +2 * 768
 
         qns_embed = self.embedding(qns)  # batch * max(qas_length)??? * dim_embed
         qns_embed = self.input_dropout(qns_embed)

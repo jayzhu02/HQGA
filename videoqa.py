@@ -31,8 +31,8 @@ class VideoQA():
 
         feat_dim = 2048
         bbox_dim = 5
-        num_clip, num_frame, num_bbox = 8, 8*4, 10  # For msvd
-#         num_clip, num_frame, num_bbox = 16, 16*4, 20  # For nextqa
+#         num_clip, num_frame, num_bbox = 8, 8*4, 10  # For msvd
+        num_clip, num_frame, num_bbox = 16, 16*4, 20  # For nextqa
 
         feat_hidden, pos_hidden = 256, 128
         word_dim = 300
@@ -103,6 +103,8 @@ class VideoQA():
                 best_eval_score = eval_score
                 if epoch >= 3 or pre_trained:
                     self.save_model(epoch, best_eval_score)
+            if 3 <= epoch <= 15:
+                self.save_model(epoch, eval_score)
 
     def train(self, epoch):
         print('==>Epoch:[{}/{}][lr_rate: {}]'.format(epoch, self.epoch_num, self.optimizer.param_groups[0]['lr']))
