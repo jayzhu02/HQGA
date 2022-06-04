@@ -192,8 +192,25 @@ class HQGA(nn.Module):
         xlen = num_clip*frame_pclip
         X = gcn_frame_input
         X_len = torch.tensor([xlen] * batch_size, dtype=torch.long)
-        v_output, QF = self.bidirec_att(X, X_len, qas_feat, qas_lengths)
-        v_output += X
+
+        # 2022.5.16 Concatenate 2 att_pool
+        v_output_1, QF_1 = self.bidirec_att(app_feats_f, X_len, qas_feat, qas_lengths)
+        # 2022.5.27 use X instead of features to concatenate
+        v_output_1, QF_1 = self.bidirec_att(X, X_len, qas_feat, qas_lengths)
+        v_output_2, QF_2 = self.bidirec_att(gcn_region_output, X_len, qas_feat, qas_lengths)
+        v_output_1 += X
+        v_output_2 += gcn_region_output
+
+        # 1.Mean method
+        # v_output, QF = torch.mean(torch.stack([v_output_1, v_output_2]), 0), \
+        #                torch.mean(torch.stack([QF_1, QF_2]), 0)
+
+        # 2.Add method
+        v_output, QF = v_output_1+v_output_2, QF_1+QF_2
+
+        # 3.Origin method
+        # v_output, QF = self.bidirec_att(X, X_len, qas_feat, qas_lengths)
+        # v_output += X
         
         v_output = v_output.view(-1, frame_pclip, feat_dim)
         num_fpclip = torch.tensor([frame_pclip] * v_output.shape[0], dtype=torch.long)
@@ -212,10 +229,25 @@ class HQGA(nn.Module):
         num_clips = torch.tensor([num_clip] * batch_size, dtype=torch.long)
         tmp = torch.cat((gcn_frame_output, mot_feats), -1)
         gcn_clip_input = self.merge_cm(tmp)
-        
-        
-        v_output, QC = self.bidirec_att(gcn_clip_input, num_clips, qas_feat, qas_lengths)
-        v_output += gcn_clip_input
+
+        # 2022.5.16 Concatenate 2 att_pool
+        v_output_1, QC_1 = self.bidirec_att(gcn_frame_output, num_clips, qas_feat, qas_lengths)
+        v_output_2, QC_2 = self.bidirec_att(mot_feats, num_clips, qas_feat, qas_lengths)
+        # 2022.5.27 use X instead of features to concatenate
+        v_output_2, QC_2 = self.bidirec_att(gcn_clip_input, X_len, qas_feat, qas_lengths)
+        v_output_1 += gcn_frame_output
+        v_output_2 += gcn_clip_input
+
+        # 1.Mean method
+        # v_output, QF = torch.mean(torch.stack([v_output_1, v_output_2]), 0), \
+        #                torch.mean(torch.stack([QF_1, QF_2]), 0)
+
+        # 2.Add method
+        v_output, QC = v_output_1+v_output_2, QC_1+QC_2
+
+        # 3.Origin method
+        # v_output, QC = self.bidirec_att(gcn_clip_input, num_clips, qas_feat, qas_lengths)
+        # v_output += gcn_clip_input
         
         gcn_output_clip, GC = self.gcn_clip(v_output, num_clips)
         
