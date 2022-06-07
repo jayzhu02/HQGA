@@ -121,7 +121,10 @@ class HQGA(nn.Module):
             cand_len = qas_lengths
 
         q_output, s_hidden = self.qns_encoder(cand_qas, cand_len, temp_multihot)
-        qns_global = s_hidden.permute(1, 0, 2).contiguous().view(q_output.shape[0], -1)  # batch * dim_hidden
+        if self.qns_encoder.rnn_type == 'lstm':
+            qns_global = s_hidden[0].permute(1, 0, 2).contiguous().view(q_output.shape[0], -1)  # batch * dim_hidden
+        else:
+            qns_global = s_hidden.permute(1, 0, 2).contiguous().view(q_output.shape[0], -1)  # batch * dim_hidden
         # print(q_output.shape, qns_global.shape)
         out, vis_graph = self.vq_encoder(vid_feats, q_output, cand_len, qns_global)
         

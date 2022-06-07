@@ -40,12 +40,12 @@ def main(args):
     # model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-VM'   # Need to change if you want to use new model
     model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-7c8s-nope&splited-aXQGA'
 
-    vis_step = 200;
+    vis_step = 200
     lr_rate = 1e-4
     epoch_num = 50
     grad_accu_steps = 1
 
-    debug = False
+    debug = True
     if debug:
         data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
                                           sample_list_path, vocab, multi_choice, use_bert, True, False)
@@ -70,8 +70,8 @@ def main(args):
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
 
-    ep = 7
-    acc = 50.92
+    ep = 15
+    acc = 51.14
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':
