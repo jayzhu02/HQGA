@@ -45,7 +45,7 @@ def main(args):
     epoch_num = 50
     grad_accu_steps = 1
 
-    debug = True
+    debug = False
     if debug:
         data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
                                           sample_list_path, vocab, multi_choice, use_bert, True, False)
@@ -70,8 +70,8 @@ def main(args):
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
 
-    ep = 15
-    acc = 51.14
+    ep = 12
+    acc = 51.06
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':

@@ -168,10 +168,12 @@ class HQGA(nn.Module):
                                                 mot_feats[batch_repeat]
 
         batch_size, num_clip, frame_pclip, region_pframe, feat_dim = bbox_feats.size()
-        
+
         xlen = num_clip*frame_pclip*region_pframe
         X = bbox_feats.view(batch_size, xlen, feat_dim)
         X_len = torch.tensor([xlen] * batch_size, dtype=torch.long)
+
+
         v_output, QO = self.bidirec_att(X, X_len, qas_feat, qas_lengths)
         v_output += X
 
@@ -197,7 +199,7 @@ class HQGA(nn.Module):
         X_len = torch.tensor([xlen] * batch_size, dtype=torch.long)
 
         # 2022.5.16 Concatenate 2 att_pool
-        v_output_1, QF_1 = self.bidirec_att(app_feats_f, X_len, qas_feat, qas_lengths)
+        # v_output_1, QF_1 = self.bidirec_att(app_feats_f, X_len, qas_feat, qas_lengths)
         # 2022.5.27 use X instead of features to concatenate
         v_output_1, QF_1 = self.bidirec_att(X, X_len, qas_feat, qas_lengths)
         v_output_2, QF_2 = self.bidirec_att(gcn_region_output, X_len, qas_feat, qas_lengths)
@@ -233,9 +235,10 @@ class HQGA(nn.Module):
         tmp = torch.cat((gcn_frame_output, mot_feats), -1)
         gcn_clip_input = self.merge_cm(tmp)
 
+
         # 2022.5.16 Concatenate 2 att_pool
         v_output_1, QC_1 = self.bidirec_att(gcn_frame_output, num_clips, qas_feat, qas_lengths)
-        v_output_2, QC_2 = self.bidirec_att(mot_feats, num_clips, qas_feat, qas_lengths)
+        # v_output_2, QC_2 = self.bidirec_att(mot_feats, num_clips, qas_feat, qas_lengths)
         # 2022.5.27 use X instead of features to concatenate
         v_output_2, QC_2 = self.bidirec_att(gcn_clip_input, X_len, qas_feat, qas_lengths)
         v_output_1 += gcn_frame_output

@@ -49,10 +49,10 @@ class EncoderQns(nn.Module):
         self.rnn_cell = rnn_cell
         self.rnn_type = rnn_cell
         self.max_qa_length = 37  # Same in sample_loader.py
-        self.temporal_length = 15  # total number of category and signal in get_tce_and_tse() in sample_loader.py
+        # self.temporal_length = 15  # total number of category and signal in get_tce_and_tse() in sample_loader.py
         self.category_length = 7
         self.signal_length = 8
-       
+
 
         self.input_dropout = nn.Dropout(input_dropout_p)
 
@@ -100,10 +100,11 @@ class EncoderQns(nn.Module):
 #             temp_dim = self.temporal_embedding(temp_multihot)
 #             temp_dim = temp_dim.view(temp_dim.shape[0], 1, temp_dim.shape[1])
             
-            cate_dim = self.category_embedding(temp_multihot[:,:self.category_length])
+            cate_dim = self.category_embedding(temp_multihot[:, :self.category_length])
             cate_dim = cate_dim.view(cate_dim.shape[0], 1, cate_dim.shape[1])
-            signal_dim = self.signal_embedding(temp_multihot[:,self.category_length:])
-            signal_dim = signal_dim.view(signal_dim.shape[0], 1, signal_dim.shape[1])            
+            signal_dim = self.signal_embedding(temp_multihot[:, self.category_length:])
+            signal_dim = signal_dim.view(signal_dim.shape[0], 1, signal_dim.shape[1])
+
             #  Concatenate Temporal encoding
 #             qns = torch.cat((qns_encoding, temp_dim), 1)  # dim: batch * max(qa_length) +1 * 768
             qns = torch.cat((qns_encoding, cate_dim, signal_dim), 1)  # dim: batch * max(qa_length) +2 * 768

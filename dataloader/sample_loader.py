@@ -186,15 +186,16 @@ class VideoQADataset(Dataset):
 #         category = {"who": 0, "how": 0, "what": 0, "what_a": 0, "where": 0, "how many": 0, "when": 0}
 #         signal = {"before": 0, "after": 0, "during":0, "start": 0,"no_signal": 0}
 
-        # For naxtqa dataset #signal可以加during, end, middle
+        # For naxtqa dataset
         category = {"who": 0, "how": 0, "what": 0, "where": 0, "how many": 0, "when": 0, "why":0}
-        signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "during":0, "end":0, "middle":0, "no_signal": 0}
+        signal = {"before": 0, "after": 0, "start": 0, "finish": 0, "during": 0, "end": 0, "middle": 0, "no_signal": 0}
+
 
         signal_flag = 0
         for c in category.keys():
             if c in question:
                 category[c] = 1
-                
+
         # For msvd Dataset, need to commit if not use
 #         if category['what'] == 1:
 #             if 'doing' in question:
@@ -205,12 +206,13 @@ class VideoQADataset(Dataset):
             category['how'] = 0
 
         for c in signal.keys():
-            if c in question:
+            if c in question.split():
                 signal[c] = 1
                 signal_flag = 1
 
         if signal_flag == 0:
             signal['no_signal'] = 1
+
 
         category_multihot = np.array([i for i in category.values()])
         signal_onehot = np.array([i for i in signal.values()])
