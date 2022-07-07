@@ -113,5 +113,5 @@ class EncoderQns(nn.Module):
         qns_embed = self.input_dropout(qns_embed)
         packed = pack_padded_sequence(qns_embed, qns_lengths, batch_first=True, enforce_sorted=False)  # ? * dim_embed
         packed_output, hidden = self.rnn(packed, hidden)  # ? * dim_hidden, 1 * batch * dim_hidden
-        output, _ = pad_packed_sequence(packed_output, batch_first=True)  # batch * max(qns_lengths) * dim_hidden
+        output, _ = pad_packed_sequence(packed_output, batch_first=True)  # batch * max(qns_lengths) * (2*dim_hidden)
         return output, hidden

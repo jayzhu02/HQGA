@@ -1,5 +1,4 @@
 import sys
-
 sys.path.insert(0, '../')
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -9,13 +8,14 @@ import numpy as np
 import nltk
 import h5py
 import time
+import clip
 
 
 class VideoQADataset(Dataset):
     """load the dataset in dataloader"""
 
     def __init__(self, video_feature_path, video_feature_cache, sample_list_path,
-                 vocab, multi_choice, use_bert, mode):
+                 vocab, multi_choice, use_bert, mode, clip_model=None):
         self.video_feature_path = video_feature_path
         self.vocab = vocab
 
@@ -29,6 +29,8 @@ class VideoQADataset(Dataset):
         self.use_frame = True
         self.use_mot = True
         self.multi_choice = multi_choice
+        self.clip_model = clip_model
+
         if not self.multi_choice:
             ans_path = osp.join(sample_list_path, 'ans_word.json')
             ans_set = load_file(ans_path)
@@ -142,29 +144,44 @@ class VideoQADataset(Dataset):
 
         video_name, qns, ans, qid = str(cur_sample[vid]), str(cur_sample['question']), \
                                     int(cur_sample['answer']), str(cur_sample[qid])
-        
+
         temporal_multihot = self.get_tce_and_tse(qns)
-        
+
         width, height = int(cur_sample['width']), int(cur_sample['height'])
         candidate_qas = []
+        qas_clip = []
+        if self.clip_model:
+            with torch.no_grad():
+                qns2clip = self.clip_model.encode_text(clip.tokenize(qns).to('cuda:1'))
         qns2ids = [self.vocab('<start>')] + self.get_word_idx(qns) + [self.vocab('<end>')]
         for id in range(5):
             cand_ans = cur_sample['a' + str(id)]
             ans2id = self.get_word_idx(cand_ans, 'a') + [self.vocab('<end>')]
+            if self.clip_model:
+                with torch.no_grad():
+                    ans2clip = self.clip_model.encode_text(clip.tokenize(cand_ans).to('cuda:1'))
+                qas_clip.append(torch.cat((qns2clip, ans2clip)))  # Second trial to do.
             candidate_qas.append(qns2ids + ans2id)
 
         candidate_qas, qa_lengths = self.get_Trans_matrix(candidate_qas)
+        if self.clip_model:
+            candidate_qas_clip = torch.zeros(len(qas_clip), qas_clip[0].shape[0], qas_clip[0].shape[1])
+            for i in range(len(qas_clip)):
+                candidate_qas_clip[i] = qas_clip[i]
         if self.use_bert:
             with h5py.File(self.bert_file, 'r') as fp:
                 temp_feat = fp['feat'][idx]
                 candidate_qas = torch.from_numpy(temp_feat).type(torch.float32)
             qa_lengths = []
+            qa_lengths_clip = []
             for i in range(5):
                 valid_row = nozero_row(candidate_qas[i])
                 assert valid_row != 0, f'{video_name}, {qid}'
                 # if valid_row != qa_lengths[i]:
                 qa_lengths.append(valid_row)
+                qa_lengths_clip.append(2)
         qns_key = video_name + '_' + qid
+
         # align with shape of candidate_qas
         temporal_multihot = temporal_multihot.reshape(1, -1).repeat(5, axis=0)
         return video_name, candidate_qas, qa_lengths, ans, qns_key, width, height, temporal_multihot
@@ -279,19 +296,32 @@ class QALoader():
         self.train_shuffle = train_shuffle
         self.val_shuffle = val_shuffle
 
+        self.use_clip = False
+
+
     def run(self, mode=''):
         if mode != 'train':
+            if self.use_clip:
+                print('Load Clip model...')
+                self.clip_model, self.clip_preprocess = clip.load('RN101', device='cuda:1')
             train_loader = ''
             val_loader = self.validate(mode)
         else:
+            if self.use_clip:
+                print('Load Clip model...')
+                self.clip_model, self.clip_preprocess = clip.load('RN101', device='cuda:1')
             train_loader = self.train('train')
             val_loader = self.validate('val')
         return train_loader, val_loader
 
     def train(self, mode):
         # print("Now in train")
-        training_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
-                                      self.vocab, self.multi_choice, self.use_bert, mode)
+        if self.use_clip:
+            training_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
+                                          self.vocab, self.multi_choice, self.use_bert, self.clip_model)
+        else:
+            training_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
+                                          self.vocab, self.multi_choice, self.use_bert, mode)
 
         print('Eligible video-qa pairs for training : {}'.format(len(training_set)))
         if not self.multi_choice and not self.use_bert:
@@ -315,8 +345,12 @@ class QALoader():
     def validate(self, mode):
         # print("Now in Validate")
         # for validation videos
-        validation_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
-                                        self.vocab, self.multi_choice, self.use_bert, mode)
+        if self.use_clip:
+            validation_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
+                                             self.vocab, self.multi_choice, self.use_bert, self.clip_model)
+        else:
+            validation_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
+                                            self.vocab, self.multi_choice, self.use_bert, mode)
 
         print('Eligible video-qa pairs for validation/test : {}'.format(len(validation_set)))
         if not self.multi_choice and not self.use_bert:

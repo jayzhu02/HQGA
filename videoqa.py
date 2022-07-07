@@ -1,3 +1,5 @@
+import torch
+
 from networks import embed_loss
 from networks.VQAModel import HQGA
 from networks.Encoder import EncoderQns, EncoderVid
@@ -61,7 +63,6 @@ class VideoQA():
         else:
             self.criterion = nn.CrossEntropyLoss().to(self.device)
 
-
     def save_model(self, epoch, acc):
         torch.save(self.model.state_dict(), osp.join(self.model_dir, '{}-{}-{}-{:.2f}.ckpt'
                                                      .format(self.model_type, self.model_prefix, epoch, acc)))
@@ -83,7 +84,6 @@ class VideoQA():
                 # print(k)
             new_model_dict[k] = v
         self.model.load_state_dict(new_model_dict)
-
 
     def run(self, model_file, pre_trained=False):
         self.build_model()
@@ -169,7 +169,6 @@ class VideoQA():
 
         return acc_num*100.0 / len(ref_answers)
 
-
     def predict(self, model_file, result_file):
         """
         predict the answer with the trained model
@@ -190,7 +189,10 @@ class VideoQA():
             for it, inputs in enumerate(self.val_loader):
                 
                 videos, qas, qas_lengths, answers, qns_keys, temp_multihot = inputs
-                
+
+                # Test the influence of video
+                # videos = [torch.zeros_like(videos[0]), torch.zeros_like(videos[1]), torch.zeros_like(videos[2])]
+
                 video_inputs = to_device(videos, self.device)
                 qas_inputs = qas.to(self.device)
                 temp_input = temp_multihot.to(self.device)
@@ -207,10 +209,10 @@ class VideoQA():
                 
                 for qid, pred, ans in zip(qns_keys, prediction, answers):
                     results[qid] = {'prediction': int(pred), 'answer': int(ans)}
-                
 
         print(len(results))
         save_file(results, result_file)
+
 
 def unk_num(predictions, references):
     num = predictions.shape[0]

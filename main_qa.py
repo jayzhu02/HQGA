@@ -17,7 +17,7 @@ def main(args):
     if platform.system() == 'Windows':
         num_worker = 0
     else:
-        num_worker = 4
+        num_worker = 4  # 0 for using clip api; else 4
         
     dataset = 'nextqa'  # nextqa, msvd, msrvtt, tgifqa
     task = ''  # if tgifqa, set task to 'action', 'transition', 'frameqa'
@@ -45,8 +45,9 @@ def main(args):
     epoch_num = 50
     grad_accu_steps = 1
 
-    debug = False
+    debug = True
     if debug:
+        batch_size = 1
         data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
                                           sample_list_path, vocab, multi_choice, use_bert, True, False)
 
@@ -54,12 +55,16 @@ def main(args):
         vqa = VideoQA(vocab, val_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
                       vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
+        # predict by the model
+        # vqa.predict(f'{model_type}-{model_prefix}-12-51.06.ckpt',
+        #             f'results/{dataset}/{task}/{model_type}-{model_prefix}-val-fakevideo.json')
+
         print("loading train...")
         for iter, data in enumerate(val_loader):
             videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
-            # print(qas.shape, temp_multihot.shape)
             vqa.run(f'{model_type}-{model_prefix}-22-39.88.ckpt', pre_trained=False)
             break
+
         return 0
 
     data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
