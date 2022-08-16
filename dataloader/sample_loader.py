@@ -10,6 +10,7 @@ import h5py
 import time
 import clip
 
+import ipdb
 
 class VideoQADataset(Dataset):
     """load the dataset in dataloader"""
@@ -40,6 +41,12 @@ class VideoQADataset(Dataset):
         if self.use_bert:
             bert_path = osp.join(self.video_feature_path, 'qas_bert')
             self.bert_file = osp.join(bert_path, 'bert_ft_{}.h5'.format(mode))
+
+#         ipdb.set_trace()
+#         fp = h5py.File(self.bert_file, 'r')
+#         temp_feat = fp['feat'][0]
+#         candidate_qas = torch.from_numpy(temp_feat).type(torch.float32)
+#         ipdb.set_trace()
 
         if self.use_bbox:
             if self.bbox_num == 10:

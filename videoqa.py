@@ -103,7 +103,7 @@ class VideoQA():
                 best_eval_score = eval_score
                 if epoch >= 3 or pre_trained:
                     self.save_model(epoch, best_eval_score)
-            if 3 <= epoch <= 15:
+            if 8 <= epoch <= 15 or eval_score >= 50:
                 self.save_model(epoch, eval_score)
 
     def train(self, epoch):
