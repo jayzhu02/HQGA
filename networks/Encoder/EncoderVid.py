@@ -5,7 +5,8 @@ from PosEmbed import positionalencoding1d
 import torch
 
 class EncoderVid(nn.Module):
-    def __init__(self, feat_dim, bbox_dim, num_clip, num_frame, num_bbox, feat_hidden, pos_hidden, input_dropout_p=0.3):
+    def __init__(self, feat_dim, bbox_dim, num_clip, num_frame, num_bbox, feat_hidden, pos_hidden,
+                 input_dropout_p=0.3, use_clip=False):
         
         super(EncoderVid, self).__init__()
         self.dim_feat = feat_dim
@@ -15,10 +16,11 @@ class EncoderVid(nn.Module):
         self.num_frame = num_frame
         self.dim_hidden = feat_hidden * 2
         self.input_dropout_p = input_dropout_p
-
+        self.use_clip = use_clip
         self.use_bboxPos = True
         self.use_framePos = True
         input_dim = feat_dim
+
 
         if self.use_bboxPos:
             input_dim += pos_hidden
@@ -46,10 +48,16 @@ class EncoderVid(nn.Module):
         #      nn.Linear(self.dim_hidden*2, self.dim_hidden),
         #      nn.ELU(inplace=True))
 
-        self.app_conv = nn.Sequential(
-            nn.Conv1d(feat_dim, self.dim_hidden, 3, padding=1),
-            nn.ELU(inplace=True)
-        )
+        if self.use_clip:
+            self.app_conv = nn.Sequential(
+                nn.Conv1d(768, self.dim_hidden, 3, padding=1),
+                nn.ELU(inplace=True)
+            )
+        else:
+            self.app_conv = nn.Sequential(
+                nn.Conv1d(feat_dim, self.dim_hidden, 3, padding=1),
+                nn.ELU(inplace=True)
+            )
 
         self.mot_conv = nn.Sequential(
             nn.Conv1d(feat_dim, self.dim_hidden, 3, padding=1),

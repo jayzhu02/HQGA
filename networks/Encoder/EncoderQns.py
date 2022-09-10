@@ -25,7 +25,7 @@ class LearnedPositionalEncoding(nn.Module):
 
 
 class EncoderQns(nn.Module):
-    def __init__(self, dim_embed, dim_hidden, vocab_size, glove_embed, use_bert=True,
+    def __init__(self, dim_embed, dim_hidden, vocab_size, glove_embed, use_bert=True, use_clip=False,
                  input_dropout_p=0.2, rnn_dropout_p=0,
                  n_layers=1, bidirectional=False, rnn_cell='gru'):
         """
@@ -48,7 +48,7 @@ class EncoderQns(nn.Module):
         self.bidirectional = bidirectional
         self.rnn_cell = rnn_cell
         self.rnn_type = rnn_cell
-        self.max_qa_length = 37  # Same in sample_loader.py
+        self.max_qa_length = 77  # Same in sample_loader.py
         # self.temporal_length = 15  # total number of category and signal in get_tce_and_tse() in sample_loader.py
         self.category_length = 7
         self.signal_length = 8
@@ -62,7 +62,8 @@ class EncoderQns(nn.Module):
             self.rnn_cell = nn.GRU
 
         self.use_bert = use_bert
-        if self.use_bert:
+        self.use_clip = use_clip
+        if self.use_bert or self.use_clip:
             input_dim = 768
             self.embedding = nn.Linear(input_dim, dim_embed)
 #             self.temporal_embedding = nn.Linear(self.temporal_length, input_dim)

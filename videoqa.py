@@ -35,6 +35,7 @@ class VideoQA():
         bbox_dim = 5
 #         num_clip, num_frame, num_bbox = 8, 8*4, 10  # For msvd
         num_clip, num_frame, num_bbox = 16, 16*4, 20  # For nextqa
+        use_clip = True
 
         feat_hidden, pos_hidden = 256, 128
         word_dim = 300
@@ -44,12 +45,12 @@ class VideoQA():
 
         if self.model_type == 'HQGA':
             
-            vid_encoder = EncoderVid.EncoderVid(feat_dim, bbox_dim, num_clip, num_frame, num_bbox,
-                                                     feat_hidden, pos_hidden, input_dropout_p=0.3)
+            vid_encoder = EncoderVid.EncoderVid(feat_dim, bbox_dim, num_clip, num_frame, num_bbox, feat_hidden,
+                                                pos_hidden, input_dropout_p=0.3, use_clip=use_clip)
 
             qns_encoder = EncoderQns.EncoderQns(word_dim, feat_hidden, vocab_size, self.glove_embed, use_bert=self.use_bert,
-                                                n_layers=1, rnn_dropout_p=0, input_dropout_p=0.3, bidirectional=True,
-                                                rnn_cell='gru')
+                                                use_clip=use_clip, n_layers=1, rnn_dropout_p=0, input_dropout_p=0.3,
+                                                bidirectional=True, rnn_cell='gru')
 
             self.model = HQGA.HQGA(vid_encoder, qns_encoder, self.device, num_class)
 
@@ -103,7 +104,7 @@ class VideoQA():
                 best_eval_score = eval_score
                 if epoch >= 3 or pre_trained:
                     self.save_model(epoch, best_eval_score)
-            if 3 <= epoch <= 15:
+            if 8 <= epoch <= 15 or eval_score >= 50:
                 self.save_model(epoch, eval_score)
 
     def train(self, epoch):

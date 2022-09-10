@@ -10,26 +10,29 @@ import h5py
 import time
 import clip
 
+import ipdb
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 class VideoQADataset(Dataset):
     """load the dataset in dataloader"""
 
     def __init__(self, video_feature_path, video_feature_cache, sample_list_path,
-                 vocab, multi_choice, use_bert, mode, clip_model=None):
+                 vocab, multi_choice, use_bert, mode):
         self.video_feature_path = video_feature_path
         self.vocab = vocab
 
         sample_list_file = osp.join(sample_list_path, '{}.csv'.format(mode))
         self.sample_list = load_file(sample_list_file)
         self.video_feature_cache = video_feature_cache
-        self.max_qa_length = 37  # 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
+        self.max_qa_length = 77  #77 for clip model, 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
         self.use_bbox = True
         self.bbox_num = 20  # 20 for NExT-QA, 10 for others
         self.use_bert = use_bert
-        self.use_frame = True
+        self.use_frame = False
         self.use_mot = True
         self.multi_choice = multi_choice
-        self.clip_model = clip_model
+        self.use_clip = True
 
         if not self.multi_choice:
             ans_path = osp.join(sample_list_path, 'ans_word.json')
@@ -40,6 +43,12 @@ class VideoQADataset(Dataset):
         if self.use_bert:
             bert_path = osp.join(self.video_feature_path, 'qas_bert')
             self.bert_file = osp.join(bert_path, 'bert_ft_{}.h5'.format(mode))
+
+#         ipdb.set_trace()
+#         fp = h5py.File(self.bert_file, 'r')
+#         temp_feat = fp['feat'][0]
+#         candidate_qas = torch.from_numpy(temp_feat).type(torch.float32)
+#         ipdb.set_trace()
 
         if self.use_bbox:
             if self.bbox_num == 10:
@@ -82,6 +91,18 @@ class VideoQADataset(Dataset):
                 for id, (vid, feat) in enumerate(zip(vids, feats)):
                     self.mot_feats[str(vid)] = feat
 
+        if self.use_clip:
+            self.qas_feat_file = osp.join(video_feature_path, 'qas_bert/clip_ft_{}.h5'.format(mode))
+            frame_feat_file = osp.join(video_feature_path, 'frame_feat/clip_app_ft_{}.h5'.format(mode))
+            print('Load {}...'.format(frame_feat_file))
+            self.frame_feats = {}
+            with h5py.File(frame_feat_file, 'r') as fp:
+                vids = fp['ids']
+                feats = fp['features']
+                print(feats.shape)   # v_num, clip_num, frame_per_clip, feat_dim
+                for id, (vid, feat) in enumerate(zip(vids, feats)):
+                    self.frame_feats[str(vid)] = feat
+
     def __len__(self):
         return len(self.sample_list)
 
@@ -105,6 +126,11 @@ class VideoQADataset(Dataset):
             video_feature.append(region_feat)
 
         if self.use_frame:
+            temp_feat = self.frame_feats[video_name]
+            app_feat = torch.from_numpy(temp_feat).type(torch.float32)
+            video_feature.append(app_feat)
+
+        if self.use_clip:
             temp_feat = self.frame_feats[video_name]
             app_feat = torch.from_numpy(temp_feat).type(torch.float32)
             video_feature.append(app_feat)
@@ -149,37 +175,30 @@ class VideoQADataset(Dataset):
 
         width, height = int(cur_sample['width']), int(cur_sample['height'])
         candidate_qas = []
-        qas_clip = []
-        if self.clip_model:
-            with torch.no_grad():
-                qns2clip = self.clip_model.encode_text(clip.tokenize(qns).to('cuda:1'))
         qns2ids = [self.vocab('<start>')] + self.get_word_idx(qns) + [self.vocab('<end>')]
         for id in range(5):
             cand_ans = cur_sample['a' + str(id)]
             ans2id = self.get_word_idx(cand_ans, 'a') + [self.vocab('<end>')]
-            if self.clip_model:
-                with torch.no_grad():
-                    ans2clip = self.clip_model.encode_text(clip.tokenize(cand_ans).to('cuda:1'))
-                qas_clip.append(torch.cat((qns2clip, ans2clip)))  # Second trial to do.
             candidate_qas.append(qns2ids + ans2id)
 
         candidate_qas, qa_lengths = self.get_Trans_matrix(candidate_qas)
-        if self.clip_model:
-            candidate_qas_clip = torch.zeros(len(qas_clip), qas_clip[0].shape[0], qas_clip[0].shape[1])
-            for i in range(len(qas_clip)):
-                candidate_qas_clip[i] = qas_clip[i]
         if self.use_bert:
             with h5py.File(self.bert_file, 'r') as fp:
                 temp_feat = fp['feat'][idx]
                 candidate_qas = torch.from_numpy(temp_feat).type(torch.float32)
             qa_lengths = []
-            qa_lengths_clip = []
             for i in range(5):
                 valid_row = nozero_row(candidate_qas[i])
                 assert valid_row != 0, f'{video_name}, {qid}'
                 # if valid_row != qa_lengths[i]:
                 qa_lengths.append(valid_row)
-                qa_lengths_clip.append(2)
+
+        if self.use_clip:
+            with h5py.File(self.qas_feat_file, 'r') as fp:
+                temp_feat = fp['feat'][idx]
+                qa_lengths = fp['qas_length'][idx]
+                candidate_qas = torch.from_numpy(temp_feat).type(torch.float32)
+
         qns_key = video_name + '_' + qid
 
         # align with shape of candidate_qas

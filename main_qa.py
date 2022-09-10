@@ -22,7 +22,7 @@ def main(args):
     dataset = 'nextqa'  # nextqa, msvd, msrvtt, tgifqa
     task = ''  # if tgifqa, set task to 'action', 'transition', 'frameqa'
     multi_choice = True  # True for nextqa and tgifqa-action(transition), False for other
-    use_bert = True
+    use_bert = False
     spatial = True
     if spatial:
         video_feature_path = '../data/{}/{}/'.format(dataset, task)
@@ -38,16 +38,16 @@ def main(args):
     checkpoint_path = 'models/{}/{}'.format(dataset, task)
     model_type = 'HQGA'
     # model_prefix = 'bert-8c10b-2L05GCN-FCV-AC-VM'   # Need to change if you want to use new model
-    model_prefix = 'bert-16c20b-2L05GCN-FCV-AC-ZJ-7c8s-nope&splited-aXQGA'
+    model_prefix = 'clip-16c20b-2L05GCN-FCV-AC-ZJ-7c8s-aXQGA'
 
     vis_step = 200
     lr_rate = 1e-4
     epoch_num = 50
     grad_accu_steps = 1
 
-    debug = True
+    debug = False
     if debug:
-        batch_size = 1
+        batch_size = 2
         data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
                                           sample_list_path, vocab, multi_choice, use_bert, True, False)
 
@@ -63,8 +63,7 @@ def main(args):
         for iter, data in enumerate(val_loader):
             videos, qas, qas_lengths, answers, qns_keys, temp_multihot = data
             vqa.run(f'{model_type}-{model_prefix}-22-39.88.ckpt', pre_trained=False)
-            break
-
+            # break
         return 0
 
     data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
@@ -75,8 +74,8 @@ def main(args):
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
 
-    ep = 12
-    acc = 51.06
+    ep = 9
+    acc = 47.70
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':
