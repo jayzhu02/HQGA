@@ -14,6 +14,7 @@ import ipdb
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
+
 class VideoQADataset(Dataset):
     """load the dataset in dataloader"""
 
