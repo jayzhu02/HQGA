@@ -73,14 +73,9 @@ def main(args):
     vqa = VideoQA(vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
                   vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
 
-
-<<<<<<< HEAD
     ep = 9
     acc = 47.70
-=======
-    ep = 30
-    acc = 50.18
->>>>>>> da0809e3f4756999ac398101ff8b59e0f5cf6d90
+
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':
