@@ -22,7 +22,8 @@ def main(args):
     dataset = 'nextqa'  # nextqa, msvd, msrvtt, tgifqa
     task = ''  # if tgifqa, set task to 'action', 'transition', 'frameqa'
     multi_choice = True  # True for nextqa and tgifqa-action(transition), False for other
-    use_bert = False
+    use_bert = True
+    use_clip = False
     spatial = True
     if spatial:
         video_feature_path = '../data/{}/{}/'.format(dataset, task)
@@ -49,11 +50,11 @@ def main(args):
     if debug:
         batch_size = 2
         data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
-                                          sample_list_path, vocab, multi_choice, use_bert, True, False)
+                                          sample_list_path, vocab, multi_choice, use_bert, use_clip, True, False)
 
         train_loader, val_loader = data_loader.run(mode='val')
         vqa = VideoQA(vocab, val_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
-                      vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
+                      vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, use_clip, multi_choice)
 
         # predict by the model
         # vqa.predict(f'{model_type}-{model_prefix}-12-51.06.ckpt',
@@ -67,15 +68,15 @@ def main(args):
         return 0
 
     data_loader = dataloader.QALoader(batch_size, num_worker, video_feature_path, video_feature_cache,
-                                      sample_list_path, vocab, multi_choice, use_bert, True, False)
+                                      sample_list_path, vocab, multi_choice, use_bert, use_clip, True, False)
 
     train_loader, val_loader = data_loader.run(mode=mode)
     vqa = VideoQA(vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type, model_prefix,
-                  vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, multi_choice)
+                  vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert, use_clip, multi_choice)
+
 
     ep = 9
     acc = 47.70
-
     model_file = f'{model_type}-{model_prefix}-{ep}-{acc:.2f}.ckpt'
 
     if mode != 'train':
