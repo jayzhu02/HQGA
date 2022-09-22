@@ -109,16 +109,16 @@ self.temporal_length = 11  # total number of category and signal in get_tce_and_
 
 1.main_qa.py
 ```
-    use_bert = False
-    use_clip = True
+    use_bert = False # True if use original features
+    use_clip = True  # True if use CLIP features
 ```
 
 2. sample_loader.py
 ```
-self.max_qa_length = 77
+self.max_qa_length = 77 # 37 for original features
 ```
 
 3. EncoderQns.py
 ```
-self.max_qa_length = 77
+self.max_qa_length = 77 # 37 for original features
 ```
