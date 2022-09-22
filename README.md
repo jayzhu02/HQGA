@@ -105,3 +105,20 @@ self.temporal_length = 11  # total number of category and signal in get_tce_and_
 112 temp_multihot = temp_multihot.view(batch_size*choice_size, -1)
 ```
 
+## Switch to use CLIP features
+
+1.main_qa.py
+```
+    use_bert = False
+    use_clip = True
+```
+
+2. sample_loader.py
+```
+self.max_qa_length = 77
+```
+
+3. EncoderQns.py
+```
+self.max_qa_length = 77
+```
