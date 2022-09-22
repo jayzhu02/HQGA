@@ -11,7 +11,8 @@ import torch.nn as nn
 
 class VideoQA():
     def __init__(self, vocab, train_loader, val_loader, glove_embed, checkpoint_path, model_type,
-                 model_prefix, vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps, use_bert=True, multi_choice=True):
+                 model_prefix, vis_step, lr_rate, batch_size, epoch_num, grad_accu_steps,
+                 use_bert=True, use_clip=False, multi_choice=True):
         self.vocab = vocab
         self.train_loader = train_loader
         self.val_loader = val_loader
@@ -26,6 +27,7 @@ class VideoQA():
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = None
         self.use_bert = use_bert
+        self.use_clip = use_clip
         self.multi_choice = multi_choice
         self.accu_grad_step = grad_accu_steps
 
@@ -35,7 +37,6 @@ class VideoQA():
         bbox_dim = 5
 #         num_clip, num_frame, num_bbox = 8, 8*4, 10  # For msvd
         num_clip, num_frame, num_bbox = 16, 16*4, 20  # For nextqa
-        use_clip = True
 
         feat_hidden, pos_hidden = 256, 128
         word_dim = 300
@@ -46,10 +47,10 @@ class VideoQA():
         if self.model_type == 'HQGA':
             
             vid_encoder = EncoderVid.EncoderVid(feat_dim, bbox_dim, num_clip, num_frame, num_bbox, feat_hidden,
-                                                pos_hidden, input_dropout_p=0.3, use_clip=use_clip)
+                                                pos_hidden, input_dropout_p=0.3, use_clip=self.use_clip)
 
             qns_encoder = EncoderQns.EncoderQns(word_dim, feat_hidden, vocab_size, self.glove_embed, use_bert=self.use_bert,
-                                                use_clip=use_clip, n_layers=1, rnn_dropout_p=0, input_dropout_p=0.3,
+                                                use_clip=self.use_clip, n_layers=1, rnn_dropout_p=0, input_dropout_p=0.3,
                                                 bidirectional=True, rnn_cell='gru')
 
             self.model = HQGA.HQGA(vid_encoder, qns_encoder, self.device, num_class)

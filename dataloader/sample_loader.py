@@ -19,21 +19,24 @@ class VideoQADataset(Dataset):
     """load the dataset in dataloader"""
 
     def __init__(self, video_feature_path, video_feature_cache, sample_list_path,
-                 vocab, multi_choice, use_bert, mode):
+                 vocab, multi_choice, use_bert, use_clip, mode):
         self.video_feature_path = video_feature_path
         self.vocab = vocab
 
         sample_list_file = osp.join(sample_list_path, '{}.csv'.format(mode))
         self.sample_list = load_file(sample_list_file)
         self.video_feature_cache = video_feature_cache
-        self.max_qa_length = 77  #77 for clip model, 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
+        self.max_qa_length = 37  #77 for clip model, 20 for MSRVTT, MSVD, TGIF-QA Trans & Action, 37 for nextqa
         self.use_bbox = True
         self.bbox_num = 20  # 20 for NExT-QA, 10 for others
         self.use_bert = use_bert
-        self.use_frame = False
         self.use_mot = True
         self.multi_choice = multi_choice
-        self.use_clip = True
+        self.use_clip = use_clip
+        if self.use_clip:
+            self.use_frame = False
+        else:
+            self.use_frame = True
 
         if not self.multi_choice:
             ans_path = osp.join(sample_list_path, 'ans_word.json')
@@ -304,7 +307,7 @@ def nozero_row(A):
 
 class QALoader():
     def __init__(self, batch_size, num_worker, video_feature_path, video_feature_cache,
-                 sample_list_path, vocab, multi_choice, use_bert, train_shuffle=True, val_shuffle=False):
+                 sample_list_path, vocab, multi_choice, use_bert, use_clip, train_shuffle=True, val_shuffle=False):
         self.batch_size = batch_size
         self.num_worker = num_worker
         self.video_feature_path = video_feature_path
@@ -316,7 +319,7 @@ class QALoader():
         self.train_shuffle = train_shuffle
         self.val_shuffle = val_shuffle
 
-        self.use_clip = False
+        self.use_clip = use_clip
 
 
     def run(self, mode=''):
@@ -338,10 +341,10 @@ class QALoader():
         # print("Now in train")
         if self.use_clip:
             training_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
-                                          self.vocab, self.multi_choice, self.use_bert, self.clip_model)
+                                          self.vocab, self.multi_choice, self.use_bert, self.use_clip, mode)
         else:
             training_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
-                                          self.vocab, self.multi_choice, self.use_bert, mode)
+                                          self.vocab, self.multi_choice, self.use_bert, self.use_clip, mode)
 
         print('Eligible video-qa pairs for training : {}'.format(len(training_set)))
         if not self.multi_choice and not self.use_bert:
@@ -367,10 +370,10 @@ class QALoader():
         # for validation videos
         if self.use_clip:
             validation_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
-                                             self.vocab, self.multi_choice, self.use_bert, self.clip_model)
+                                             self.vocab, self.multi_choice, self.use_bert, self.use_clip, mode)
         else:
             validation_set = VideoQADataset(self.video_feature_path, self.video_feature_cache, self.sample_list_path,
-                                            self.vocab, self.multi_choice, self.use_bert, mode)
+                                            self.vocab, self.multi_choice, self.use_bert, self.use_clip, mode)
 
         print('Eligible video-qa pairs for validation/test : {}'.format(len(validation_set)))
         if not self.multi_choice and not self.use_bert:
